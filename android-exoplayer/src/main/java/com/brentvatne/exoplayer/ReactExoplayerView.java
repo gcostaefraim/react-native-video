@@ -1267,4 +1267,9 @@ class ReactExoplayerView extends FrameLayout implements
             }
         }
     }
+                
+    @Override
+    public String toString() {
+        return getClass().getName() + "@" + Integer.toHexString(System.identityHashCode(this)); 
+    }
 }
