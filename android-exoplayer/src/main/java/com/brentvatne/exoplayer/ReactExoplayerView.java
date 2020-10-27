@@ -64,6 +64,9 @@ import com.google.android.exoplayer2.upstream.DefaultAllocator;
 import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
 import com.google.android.exoplayer2.upstream.HttpDataSource;
 import com.google.android.exoplayer2.util.Util;
+import com.google.android.exoplayer2.util.EventLogger;
+import com.google.android.exoplayer2.source.DefaultMediaSourceFactory;
+import com.google.android.exoplayer2.source.MediaSourceFactory;
 
 import java.net.CookieHandler;
 import java.net.CookieManager;
@@ -393,12 +396,24 @@ class ReactExoplayerView extends FrameLayout implements
                     DefaultLoadControl defaultLoadControl = defaultLoadControlBuilder.createDefaultLoadControl();
                     DefaultRenderersFactory renderersFactory =
                             new DefaultRenderersFactory(getContext())
-                                    .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF);
+                            .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF);
                     // TODO: Add drmSessionManager to 5th param from: https://github.com/react-native-community/react-native-video/pull/1445
-                    player = ExoPlayerFactory.newSimpleInstance(getContext(), renderersFactory,
-                            trackSelector, defaultLoadControl, null, bandwidthMeter);
+                    // player = SimpleExoPlayer.Builder(getContext(), renderersFactory,
+                    //         trackSelector, defaultLoadControl, null, bandwidthMeter, null);
+
+                    MediaSourceFactory mediaSourceFactory = new DefaultMediaSourceFactory(mediaDataSourceFactory);
+                    
+                    player = new SimpleExoPlayer.Builder(getContext(), renderersFactory)
+                            .setMediaSourceFactory(mediaSourceFactory)
+                            .setTrackSelector(trackSelector)
+                            .setBandwidthMeter(bandwidthMeter)
+                            .build();
+                            // .setLoadControl(defaultLoadControl)
+
+                    player.addAnalyticsListener(new EventLogger(trackSelector));
                     player.addListener(self);
                     player.addMetadataOutput(self);
+
                     exoPlayerView.setPlayer(player);
                     audioBecomingNoisyReceiver.setListener(self);
                     bandwidthMeter.addEventListener(new Handler(), self);
